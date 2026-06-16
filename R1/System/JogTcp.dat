@@ -1,0 +1,89 @@
+&ACCESS R
+&REL 1
+&COMMENT global Jogging TCPs
+DEFDAT JOGTCP PUBLIC
+GLOBAL INT MAX_JOG_TCP_PER_TOOL=5
+; JOG_TCP[n,] is related to TOOL_DATA[n]
+GLOBAL STRUC JTCP CHAR NAME[24], FRAME TCP
+DECL GLOBAL JTCP JOG_TCP[16,5]
+JOG_TCP[1,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[1,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[1,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[1,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[1,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[2,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[2,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[2,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[2,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[2,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[3,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[3,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[3,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[3,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[3,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[4,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[4,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[4,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[4,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[4,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[5,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[5,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[5,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[5,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[5,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[6,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[6,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[6,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[6,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[6,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[7,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[7,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[7,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[7,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[7,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[8,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[8,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[8,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[8,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[8,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[9,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[9,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[9,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[9,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[9,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[10,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[10,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[10,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[10,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[10,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[11,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[11,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[11,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[11,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[11,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[12,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[12,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[12,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[12,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[12,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[13,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[13,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[13,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[13,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[13,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[14,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[14,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[14,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[14,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[14,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[15,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[15,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[15,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[15,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[15,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[16,1]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[16,2]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[16,3]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[16,4]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+JOG_TCP[16,5]={NAME[] " ",TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+ENDDAT

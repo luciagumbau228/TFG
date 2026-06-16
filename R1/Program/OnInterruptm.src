@@ -1,0 +1,6 @@
+DEF  OnInterruptm ( )
+   INTERRUPT OFF 11  ; Previene dobles disparos por rebote del sensor
+   B_Mantenimiento_Activo = TRUE
+   IR_STOPM()           ; Frena los servomotores con máxima deceleración
+   RESUME 
+END

@@ -1,0 +1,7 @@
+DEF  Ir_a_Home ( )
+   
+   $BASE = BASE_DATA[1]
+   SPTP Casa
+   AbrirPinza()
+   HALT
+END

@@ -1,0 +1,109 @@
+DEF  Dejar2 ( )
+   ;FOLD INI;%{PE}
+      ;FOLD BASISTECH INI
+         GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+         INTERRUPT ON 3 
+         BAS (#INITMOV,0 )
+      ;ENDFOLD (BASISTECH INI)
+      ;FOLD USER INI
+         ;Make your modifications here
+         
+      ;ENDFOLD (USER INI)
+   ;ENDFOLD (INI)
+   WAIT FOR DI_PermPalEntraP1_SIM OR DI_PermAproxPal_SIM
+   $BASE = BASE_DATA[2]
+
+   $VEL_AXIS[1]=100.0
+   $VEL_AXIS[2]=100.0
+   $VEL_AXIS[3]=100.0
+   $VEL_AXIS[4]=100.0
+   $VEL_AXIS[5]=100.0
+   $VEL_AXIS[6]=100.0
+   $APO.CPTP = 80
+   PTP PtoFueraPalet C_PTP
+   PTP SobreDejarHTte C_PTP
+
+   DO_RigidizaFlot = FALSE
+ 
+   DO_LiberaFlot = TRUE
+   PTP AproxDejar C_PTP
+
+   DO_RPalL1 = TRUE 
+
+   $VEL.CP = 3.0
+   $APO.CDIS = 50          
+   LIN PreDejarDiagonal C_DIS
+
+ 
+   DO_SacaUnas = FALSE    
+   CONTINUE
+   DO_EscondeUnas = TRUE   
+   
+   $APO.CDIS = 5
+   LIN AntesDejar C_DIS
+
+   CONTINUE
+   WAIT FOR DI_UnasEscondidas_SIM
+   DO_EscondeUnas  = FALSE 
+   DO_RigidizaFlot = TRUE 
+ 
+   $VEL.CP = 2.0
+   LIN PosDejar
+
+   DO_AtrasCentrajeL = FALSE
+   DO_AdelanteCentrajeL = TRUE
+
+   IF (PosDejar.X <= -300) THEN
+      DO_SubeCentrajeLat_IZQ = FALSE 
+      DO_BajaCentrajeLat_IZQ = TRUE   
+      DO_FWDCentrajeLat_IZQ  = FALSE  
+      DO_REVCentrajeLat_IZQ  = TRUE 
+      CONTINUE
+      WAIT FOR NOT DI_CentrajeIzqArriba_SIM AND DI_CentrajeIzqAtras_SIM
+      DO_BajaCentrajeLat_IZQ = FALSE  
+      DO_REVCentrajeLat_IZQ  = FALSE
+   ENDIF
+
+   IF (PosDejar.X < -900) THEN
+      DO_SubeCentrajeLateral = FALSE 
+      DO_BajaCentrajeLateral = TRUE   
+      DO_FWDCentrajeLat      = FALSE  
+      DO_REVCentrajeLat      = TRUE   
+      CONTINUE
+      WAIT FOR NOT DI_CentrajeDerArriba_SIM AND DI_CentrajeDerAtras_SIM
+      DO_BajaCentrajeLateral = FALSE  
+      DO_REVCentrajeLat      = FALSE
+   ENDIF
+
+
+   $LOAD = LOAD_DATA[1] 
+   DO_CapaDepoPalL1 = TRUE 
+   
+   DO_CierraPala = FALSE   
+   DO_AbrePala = TRUE      
+   
+   AbrirPinza()
+   
+   $VEL.CP = 3.0
+   $APO.CDIS = 100
+   LIN LiberaCajasPal C_DIS
+ 
+   DO_LiberaFlot = TRUE 
+   DO_CapaDepoPalL1 = FALSE
+
+   $VEL_AXIS[1]=100.0
+   $VEL_AXIS[2]=100.0
+   $VEL_AXIS[3]=100.0
+   $VEL_AXIS[4]=100.0
+   $VEL_AXIS[5]=100.0
+   $VEL_AXIS[6]=100.0
+   $APO.CPTP = 80
+   PTP SobrePaletHTte C_PTP
+
+   DO_RPalL1 = FALSE
+   PTP PtoFueraPalet
+
+   CONTINUE
+   WAIT FOR DI_Strobe_SIM
+   N_Cajas_OK = N_Cajas_OK + 1
+END

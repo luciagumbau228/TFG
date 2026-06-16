@@ -1,0 +1,23 @@
+DEF  AbrirPinza ( )
+   ;Desactivamos todas las señales para cerrar
+   DO_CierraPala = FALSE
+   DO_AdelanteCentrajeL = FALSE
+   DO_SacaUnas = FALSE
+   DO_FWDCentrajeLat = FALSE
+   DO_BajaCentrajeLateral = FALSE
+   DO_FWDCentrajeLat_IZQ = FALSE
+   DO_BajaCentrajeLat_IZQ = FALSE
+   
+   ;Activamos todas las Señales para abrir
+   DO_AbrePala = TRUE
+   DO_AtrasCentrajeL = TRUE
+   DO_EscondeUnas = TRUE
+   DO_SubeCentrajeLateral = TRUE
+   DO_REVCentrajeLat = TRUE
+   DO_SubeCentrajeLat_IZQ = TRUE
+   DO_REVCentrajeLat_IZQ = TRUE
+   
+   ;Flotación activada
+   DO_RigidizaFlot = FALSE
+   DO_LiberaFlot = TRUE
+END

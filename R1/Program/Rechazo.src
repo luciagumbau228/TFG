@@ -1,0 +1,16 @@
+DEF  Rechazo ( )
+ 
+   
+   Calc_rec()
+   Recoger()
+   $BASE = BASE_DATA[1]
+   Sobre_depo = Dep_Caja_ini
+   sobre_depo.Z = H_Tte
+   WAIT FOR DI_PermPalEntraP1_SIM
+   SPTP Sobre_depo  
+   SLIN PosRechazo WITH $VEL.CP = 2.5
+   
+   AbrirPinza()
+   N_Cajas_Rechazo = N_Cajas_Rechazo + 1
+   
+END

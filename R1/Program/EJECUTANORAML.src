@@ -1,0 +1,4 @@
+DEF  EJECUTANORAML ( )
+ Paletiza()
+   
+END

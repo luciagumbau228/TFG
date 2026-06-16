@@ -1,0 +1,137 @@
+DEF  Calc_mosico ( )
+
+
+   DO_CalculandoPos = TRUE
+   DO_PaletCompleto = FALSE
+   
+   ;FOLD GESTIÓN DE CONTADORES
+   ; Si el contador total supera el máximo (40 cajas), reseteamos
+   IF Num_cajas_total > (Formatoactual.CajasCapa * Formatoactual.CapasTotales) THEN
+     $TIMER_STOP[1] = TRUE
+     TiempoCicloTotal = $TIMER[1] / 1000.0
+     $TIMER[1] = 0 ;Ciclo
+     MsgNotify("CAJA %1", "SISTEMA", Num_cajas_actual)
+     MsgNotify("Tiempo ciclo: %1", "SISTEMA", TiempoCicloTotal)
+     HistorialCiclos[N_Palets+Num_capas_actual-1] = TiempoCicloTotal   
+     MsgNotify("Palet completado", "SISTEMA")
+     MsgNotify("Mejor tiempo ciclo: %1", "SISTEMA", Mejor_ciclo)
+     MsgNotify("Peor tiempo ciclo: %1", "SISTEMA", Peor_ciclo)
+     MsgNotify("Mejor tiempo dejada: %1", "SISTEMA", Mejor_dejada)
+     MsgNotify("Peor tiempo dejada: %1", "SISTEMA", Peor_dejada)
+     MsgNotify("Mejor tiempo recogida: %1", "SISTEMA", Mejor_recogida)
+     MsgNotify("Peor tiempo recogida: %1", "SISTEMA", Peor_recogida)
+   FinCiclo = TRUE
+   DO_PaletCompleto = TRUE
+   $TIMER_STOP[4] = FALSE
+   $TIMER[4] = 0
+   WAIT FOR DI_PaletNuevoOK
+   $TIMER_STOP[4] = TRUE
+   Tiempo_Nuevo_Palet = Tiempo_Nuevo_Palet + ($TIMER[4]/1000.0)
+   DO_PaletCompleto = FALSE 
+   N_Palets = N_Palets+1
+   ResetPalet()
+   
+   ENDIF
+   
+   ; Control de salto de capa
+   IF Num_cajas_actual > Formatoactual.CajasCapa THEN
+     $TIMER_STOP[1] = TRUE
+     TiempoCicloTotal = $TIMER[1] / 1000.0
+     $TIMER[1] = 0 ;Ciclo
+     MsgNotify("CAJA %1", "SISTEMA", Num_cajas_actual)
+     MsgNotify("Tiempo ciclo: %1", "SISTEMA", TiempoCicloTotal)
+     B_CapaCompletada = TRUE
+     Num_cajas_actual = 1
+     Num_capas_actual = Num_capas_actual + 1   
+     HistorialCiclos[N_Palets+Num_capas_actual-1] = TiempoCicloTotal
+   ELSE
+     B_CapaCompletada = FALSE
+   ENDIF
+   ;ENDFOLD
+    ; --- LARGO EFECTIVO SEGÚN FORMATO ---
+   IF (FormatoActual.Largo == 300) AND NOT DI_ModoVaciadoLinea_SIM THEN
+      LargoEfectivo = FormatoActual.Largo * 2  ; Bloque de 600mm
+   ELSE
+      LargoEfectivo = FormatoActual.Largo
+   ENDIF
+   Fila = (TABLA_MOS[Num_cajas_actual].Fila)
+   Columna = (TABLA_MOS[Num_cajas_actual].Columna)
+   OffsetX = - (LargoEfectivo/2) - ((Fila - 1) * FormatoActual.Largo)
+   OffsetY = (FormatoActual.Ancho/2) + ((Columna - 1) * (FormatoActual.Ancho))
+   GiroCaja = TABLA_MOS[Num_cajas_actual].Giro
+
+
+  PosDejar.X = OffsetX 
+  PosDejar.Y = OffsetY 
+  PosDejar.Z = ((Num_capas_actual - 1) * FormatoActual.Alto) + 25 
+  PosDejar.A = GiroCaja
+  
+  IF NOT (Num_cajas_actual == Formatoactual.CajasCapa) THEN
+     GiroSigCaja = TABLA_MOS[Num_cajas_actual + 1].Giro
+  ELSE
+     GiroSigCaja = TABLA_MOS[1].Giro
+  ENDIF
+  IF (GiroSigCaja == -90) THEN
+     CogeCaja180 = TRUE
+  ELSE
+     CogeCaja180 = FALSE
+  ENDIf
+  
+  AntesDejar = PosDejar
+  AntesDejar.Z = AntesDejar.Z + 50 ;posición para sacar las uñas
+  
+  
+  ;CÁLCULO DE TRAYECTORIA DIAGONAL
+  ;Punto previo a la entrada suave (50mm de margen en X e Y)
+  PreDejarDiagonal = PosDejar
+  PreDejarDiagonal.X = PosDejar.X - 50.0
+  
+  IF NOT (GiroCaja == 90) THEN
+     PreDejarDiagonal.Y = PosDejar.Y - 50.0
+  ELSE
+     PreDejarDiagonal.Y = PosDejar.Y + 50.0
+  ENDIF
+  PreDejarDiagonal.Z = PosDejar.Z + 100.0
+  
+  AproxDejar = PreDejarDiagonal
+  AproxDejar.Z = AproxDejar.Z + DistAproxZ 
+  
+   H_Tte_Pal = AproxDejar.Z + 300
+   IF H_Tte_Pal > H_Max_Tte_Pal THEN
+      H_Tte_Pal = H_Max_Tte_Pal
+   ENDIF
+   
+   IF H_Tte_Pal < H_Min_Tte_Pal THEN
+      H_Tte_Pal = H_Min_Tte_Pal
+   ENDIF
+   
+  ;Pto intermedio sobre el palet
+  SobreDejarHTte = AproxDejar
+  SobreDejarHTte.Z = H_Tte_Pal
+  ;Una vez la cajas en el palet, movemos robot a un pto para que libere la caja de los peines
+  LiberaCajasPal = PosDejar ;para que se guarde la orientación
+  LiberaCajasPal.z = PosDejar.z + FormatoActual.Alto + 100
+  
+
+  
+  SobrePaletHTte= LiberaCajasPal
+  SobrePaletHTte.Z = H_Tte_Pal
+  PtoFueraPalet = SobrePaletHTte
+ 
+  IF (DI_ManoIZQ) THEN
+     PtoFueraPalet.Y = PtoFueraPalet.Y - 300
+  ELSE
+     PtoFueraPalet.Y = PtoFueraPalet.Y + 300
+  ENDIF
+  
+  IF (FormatoActual.Largo == 300) AND NOT DI_ModoVaciadoLinea_SIM THEN
+     Num_cajas_fisicas_total = Num_cajas_fisicas_total + 2
+  ELSE
+     Num_cajas_fisicas_total = Num_cajas_fisicas_total + 1
+  ENDIF
+  Num_cajas_actual = Num_cajas_actual + 1
+  Num_cajas_total = Num_cajas_total + 1
+  
+  DO_CalculandoPos = FALSE
+END
+

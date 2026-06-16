@@ -1,0 +1,44 @@
+DEF  Paletiza ( )
+   $TIMER_STOP[1] = FALSE
+   Calc_rec()
+   Calc_mosico()
+   DO_PeticionNuevoDest = FALSE
+   IF B_Reinicio_Activo OR B_Mantenimiento_Activo THEN 
+       RETURN 
+   ENDIF
+   $TIMER_STOP[2] = FALSE
+   Recoger()
+   $TIMER_STOP[2] = TRUE
+   T_Recoger = $TIMER[2] / 1000.0
+   $TIMER[2] = 0 ;Recoger
+   IF B_Reinicio_Activo OR B_Mantenimiento_Activo THEN 
+       RETURN 
+   ENDIF
+   $TIMER_STOP[3] = FALSE
+   Dejar()
+   $TIMER_STOP[3] = TRUE
+   T_Dejar = $TIMER[3] / 1000.0
+   $TIMER[3] = 0 ;Dejar
+   
+   IF (T_Recoger > Peor_recogida) THEN
+      Peor_recogida = T_Recoger
+   ENDIF
+   IF (T_Recoger < Mejor_recogida) THEN   
+      Mejor_recogida = T_Recoger
+   ENDIF
+    
+   IF (T_Dejar > Peor_dejada) THEN
+      Peor_dejada = T_Dejar
+   ENDIF
+   IF (T_Dejar < Mejor_dejada) THEN   
+      Mejor_dejada = T_Dejar
+   ENDIF
+    
+   IF (TiempoCicloTotal > Peor_ciclo) THEN
+      Peor_ciclo = TiempoCicloTotal
+   ENDIF
+   IF (TiempoCicloTotal < Mejor_ciclo) and not (TiempoCicloTotal == 0) THEN   
+      Mejor_ciclo = TiempoCicloTotal
+   ENDIF
+
+END

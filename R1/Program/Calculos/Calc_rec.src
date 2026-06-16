@@ -1,0 +1,31 @@
+DEF Calc_rec ( )
+   
+   msgOffset = 0
+   ; Las cajas se paran a 325mm respecto la base de la mesa
+   CogeMesa.X = -325.0 - (FormatoActual.Largo / 2.0)  
+   CogeMesa.Y = -(FormatoActual.Ancho / 2.0)          
+   CogeMesa.Z = 5.0             
+   CogeMesa.B = 0.0
+   CogeMesa.C = 180.0                                 
+   
+   IF NOT CogeCaja180 THEN
+      CogeMesa.A = 90                              
+   ELSE 
+      CogeMesa.A = -90                            
+   ENDIF
+   
+   ; Generamos el punto de entrada aproximado
+   EntradaMesa = CogeMesa
+   EntradaMesa.Z = CogeMesa.Z + FormatoActual.Alto + 50.0
+   
+   H_LiberaMesa = CogeMesa.Z + FormatoActual.Alto + 500.0
+   IF H_LiberaMesa > H_Max_Tte_Mesa THEN
+      H_Tte_Mesa = H_Max_Tte_Mesa
+   ELSE
+      H_Tte_Mesa = H_LiberaMesa
+   ENDIF
+    
+   SobreMesa = CogeMesa
+   SobreMesa.Z = H_Tte_Mesa    
+
+END

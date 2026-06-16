@@ -1,0 +1,7 @@
+DEF  ResetPalet ( )
+   Num_cajas_actual = 1
+   Num_capas_actual = 1
+   Num_cajas_total = 1
+   N_Cajas_OK = 0
+   
+END

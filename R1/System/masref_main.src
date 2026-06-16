@@ -1,0 +1,102 @@
+&ACCESS RVP
+&REL 8
+&COMMENT Mastering Reference Main Task
+&PARAM DISKPATH = KRC:\R1\System
+&PARAM EDITMASK = *
+DEF MasRef_Main()
+DECL BOOL RET
+;*******************************************
+;* main module for safety relevant feature *
+;*           'Master Reference'            *
+;*******************************************
+   ;FOLD Start conditions for mastering reference
+   MsgState(MASREF_StateMsgHandle, "MasterReferenceCheckStartConditions", MASREF_Modulname[], , , 103)
+   IF Varstate("$pro_ip.si01.name[]") <> #DECLARED THEN
+      ;APP//MasRef_Main() was called from outside
+      IF NOT $MasteringTest_Req_Ext AND NOT $MasteringTest_Req_Int THEN
+         ;APP//Neither internal nor external mastering test is required -> Do nothing.
+         ret=Clear_KrlMsg(MASREF_StateMsgHandle)
+         IF (ret == FALSE) THEN
+            MSGNOTIFY("The expected message from MASREF was deleted by other module?")
+         ENDIF
+         RETURN
+      ENDIF
+   ENDIF
+
+   ret=Clear_KrlMsg(MASREF_StateMsgHandle)
+
+   IF (ret == FALSE) THEN
+      MSGNOTIFY("The expected message from MASREF was deleted by other module?")
+   ENDIF
+   ;ENDFOLD
+
+   ;FOLD Reference run
+   MsgState(MASREF_StateMsgHandle, "MasterReferenceGroup", MASREF_Modulname[], , , 104, MASREF_MsgOptWithLogging)
+   RunTest()
+   ret=Clear_KrlMsg(MASREF_StateMsgHandle)
+   IF (ret == FALSE) THEN
+      MSGNOTIFY("The expected message from MASREF was deleted by other module?")
+   ENDIF
+   ;ENDFOLD
+
+   ;FOLD Finalize mastering reference 
+   MsgState(MASREF_StateMsgHandle, "MasterReferenceFinalize", MASREF_Modulname[], , , 106)
+   ;APP//Wait for acknowledgement that mastering test is not requested anymore.
+   MASREF_nLapsedTime=0
+   REPEAT
+      WAIT SEC MASREF_TimeoutOneCycle
+      MASREF_nLapsedTime=MASREF_nLapsedTime + 1
+   UNTIL (NOT $MasteringTest_Req_Int) OR (MASREF_nLapsedTime > MASREF_nLapsedTimeout)
+   IF $MasteringTest_Req_Int THEN
+      ;APP//Wait for acknowledgement: Mastering test did not succeeed.
+      MsgQuit("MasterReferenceNotSuccessful", MASREF_Modulname[], , , 102, MASREF_MsgOptWithLogging)
+   ENDIF
+   ret=Clear_KrlMsg(MASREF_StateMsgHandle)
+   IF (ret == FALSE) THEN
+      MSGNOTIFY("The expected message from MASREF was deleted by other module?")
+   ENDIF
+   ;ENDFOLD
+END
+
+DEF RunTest()
+DECL BOOL RobrootUsed
+   USE_MMD_IF_AVAILABLE=TRUE
+   isRobrootUsed(RobrootUsed)
+
+   ;FOLD Implementation
+   ;Since currently no robroot axes support MMD, fall back to external referencing switch if robroot axes are used.
+   IF ((($MMD_CAPABLE_AXES > 0) AND NOT RobrootUsed) AND USE_MMD_IF_AVAILABLE) THEN
+      ;FOLD Perform MMD mastering if available and desired.
+      MasRefMmd()
+      ;ENDFOLD
+   ELSE
+      ;APP//Move to referencing position for group 1.
+      MasRefStart()
+      ;APP//wait until referencing position has been reached.
+      WAIT SEC 0.5
+      REPEAT
+      WAIT SEC MASREF_TimeoutOneCycle
+         MASREF_nLapsedTime=MASREF_nLapsedTime + 1
+      UNTIL (($MASTERINGTEST_ACTIVE) AND ($MASTERINGTEST_SWITCH_OK)) OR (MASREF_nLapsedTime > MASREF_nLapsedTimeout)
+      IF (NOT $MASTERINGTEST_SWITCH_OK) THEN
+      ;Referencing switch does not have the expected level: mastering is wrong or switch is broken.
+      MsgQuit("UnexpectedSwitchLevelInReferencingPose", MASREF_Modulname[], , , 108, MASREF_MsgOptWithLogging)
+      ENDIF
+      IF ((NOT $MASTERINGTEST_ACTIVE) AND ($MASTERINGTEST_SWITCH_OK)) THEN
+         ;Referencing position was not reached: referencing position configured for safety and referencing position used in the program do not coincide.
+         MsgQuit("ReferencingPosNotReached", MASREF_Modulname[], , , 107, MASREF_MsgOptWithLogging)
+      ENDIF
+      ;APP//Wait to recognize the switch.
+      IF ($MASTERINGTEST_ACTIVE AND $MASTERINGTEST_SWITCH_OK) THEN
+         WAIT SEC 0.7
+         ;APP//Move away from switch.
+         MasRefBack()
+      ENDIF
+   ENDIF
+   ;ENDFOLD
+END
+
+DEF isRobrootUsed(RobrootUsed:OUT)
+DECL BOOL RobrootUsed
+   RobrootUsed=($EX_KIN.ET1 == #ERSYS) OR ($EX_KIN.ET2 == #ERSYS) OR ($EX_KIN.ET3 == #ERSYS) OR ($EX_KIN.ET4 == #ERSYS) OR ($EX_KIN.ET5 == #ERSYS) OR ($EX_KIN.ET6 == #ERSYS)
+END

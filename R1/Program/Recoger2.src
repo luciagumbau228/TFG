@@ -1,0 +1,94 @@
+DEF  Recoger2 ( )
+   ;FOLD INI;%{PE}
+      ;FOLD BASISTECH INI
+         GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+         INTERRUPT ON 3 
+         BAS (#INITMOV,0 )
+      ;ENDFOLD (BASISTECH INI)
+      ;FOLD USER INI
+         ;Make your modifications here
+         
+      ;ENDFOLD (USER INI)
+   ;ENDFOLD (INI)
+   $BASE = BASE_DATA[3]
+   $LOAD = LOAD_DATA[1] ;PINZA VACIA
+   $BASE = BASE_DATA[3]
+   $LOAD = LOAD_DATA[1] ; PINZA VACIA
+   
+   ; Esperar señal de rodillera lista
+   WAIT FOR DI_PermMesaL1_SIM 
+   
+
+   $VEL_AXIS[1]=100.0
+   $VEL_AXIS[2]=100.0
+   $VEL_AXIS[3]=100.0
+   $VEL_AXIS[4]=100.0
+   $VEL_AXIS[5]=100.0
+   $VEL_AXIS[6]=100.0
+   $APO.CPTP = 40          
+   PTP SobreMesa C_PTP
+
+   ;FOLD ABRIR PINZA POR COMPLETO
+   CONTINUE
+   WAIT FOR DI_FlotLibre_SIM AND DI_PalaAbierta_SIM AND DI_UnasEscondidas_SIM 
+
+   DO_AbrePala = FALSE
+   DO_AtrasCentrajeL = FALSE
+   DO_EscondeUnas = FALSE
+   DO_SubeCentrajeLateral = FALSE
+   DO_REVCentrajeLat = FALSE
+   DO_SubeCentrajeLat_IZQ = FALSE
+   DO_REVCentrajeLat_IZQ = FALSE
+   DO_LiberaFlot = FALSE
+   ;ENDFOLD ABRIR PINZA 
+   
+   DO_RMesaL1 = TRUE 
+   DO_RecogiendoCaja = TRUE
+
+   $VEL.CP = 3.0           
+   LIN EntradaMesa
+   LIN CogeMesa
+   
+   DO_AbrePala = FALSE     
+   DO_CierraPala = TRUE    
+   WAIT FOR DI_PalaCerrada_SIM
+   DO_CierraPala = FALSE   
+   
+   DO_EscondeUnas = FALSE 
+   DO_SacaUnas = TRUE     
+   
+   $VEL.CP = 2.5          
+   LIN EntradaMesa
+   
+
+   IF (PosDejar.X <= -300) THEN
+      IF (PosDejar.Y > 200) THEN
+         DO_REVCentrajeLat = FALSE     
+         DO_FWDCentrajeLat = TRUE    
+      ELSE
+         DO_REVCentrajeLat_IZQ = FALSE 
+         DO_FWDCentrajeLat_IZQ = TRUE  
+      ENDIF 
+   ENDIF
+      
+   $LOAD = LOAD_DATA[2] 
+   
+   DO_CapaRecL1 = TRUE
+   WAIT FOR DI_UnasSacadas_SIM
+   DO_SacaUnas = FALSE     
+   
+   $VEL_AXIS[1]=100.0
+   $VEL_AXIS[2]=100.0
+   $VEL_AXIS[3]=100.0
+   $VEL_AXIS[4]=100.0
+   $VEL_AXIS[5]=100.0
+   $VEL_AXIS[6]=100.0
+   $APO.CPTP = 80
+   PTP SobreMesa C_PTP
+
+   DO_CapaRecL1 = FALSE
+   DO_RigidizaFlot = TRUE
+   
+   DO_RMesaL1 = FALSE 
+   PTP SobreMesa
+END

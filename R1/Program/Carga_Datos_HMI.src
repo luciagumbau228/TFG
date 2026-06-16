@@ -1,0 +1,15 @@
+DEF  Carga_Datos_HMI ( )
+   
+   Test_Carga_Mosaicos()
+   
+   FOR i = 1 TO FormatoActual.CajasCapa
+      ; Esperamos a que el operario pulse Guardar (Strobe activo)
+      WAIT FOR DI_Strobe_HMI_SIM 
+      TABLA_MOS[i].Fila = Fila[i]
+      TABLA_MOS[i].Columna = Colum[i]
+      TABLA_MOS[i].Giro = Ang[i]
+      DO_ACK_HMI = TRUE ; Confirmación al PLC
+      WAIT FOR DI_Strobe_HMI_SIM == FALSE
+      DO_ACK_HMI = FALSE
+   ENDFOR
+END

@@ -1,0 +1,275 @@
+&ACCESS RVO
+&REL 5
+&COMMENT PLC on control
+DEF  SPS ( )
+  ;FOLD DECLARATIONS
+  ;FOLD BASISTECH DECL
+  ;Automatik extern
+  DECL STATE_T STAT
+  DECL MODUS_T MODE
+  ;ENDFOLD (BASISTECH DECL)
+  ;FOLD USER DECL
+  ; Please insert user defined declarations
+
+  ;ENDFOLD (USER DECL)
+  ;ENDFOLD (DECLARATIONS)
+  ;FOLD INI
+  ;FOLD BASISTECH INIT
+  BasisTech_PLC_INIT()
+  ;ENDFOLD (BASISTECH INIT)
+  ;FOLD AUTOEXT INIT
+  INTERRUPT DECL 91 WHEN $PRO_STATE1==#P_FREE DO RESET_OUT ()
+  INTERRUPT ON 91
+  INTERRUPT DECL 92 WHEN $PRO_MOVE==TRUE DO RESET_LINESEL()
+  INTERRUPT ON 92
+  $LOOP_MSG[]="                                                            "
+  MODE=#SYNC
+  $H_POS=$H_POS
+  ;Automatik extern
+  IF $MODE_OP==#EX THEN
+    CWRITE($CMD,STAT,MODE,"RUN /R1/CELL()")
+  ENDIF
+  ;ENDFOLD (AUTOEXT INIT) 
+  ;FOLD USER INIT
+  ; Please insert user defined initialization commands
+  ;ENDFOLD (USER INIT)
+  ;ENDFOLD (INI)
+
+  LOOP
+	WAIT FOR NOT($POWER_FAIL)
+
+	;FOLD BASISTECH PLC
+	BasisTech_PLC_LOOP()
+	;ENDFOLD (BASISTECH PLC)
+
+	;FOLD USER PLC SIMULATION  
+         ;FOLD PALA
+            ; --- CERRAR ---
+            IF DO_CierraPala THEN
+               T_Pala_Cierra=T_Pala_Cierra + 1
+               IF T_Pala_Cierra > 2 THEN
+                  DI_PalaCerrada_SIM=TRUE
+                  DI_PalaAbierta_SIM=FALSE
+               ENDIF
+            ELSE
+               T_Pala_Cierra=0
+            ENDIF
+            ; --- ABRIR ---
+            IF DO_AbrePala THEN
+               T_Pala_Abre=T_Pala_Abre + 1
+               IF T_Pala_Abre > 2 THEN
+                  DI_PalaAbierta_SIM=TRUE
+                  DI_PalaCerrada_SIM=FALSE
+               ENDIF
+            ELSE
+               T_Pala_Abre=0
+            ENDIF
+         ;ENDFOLD
+         ;FOLD UÑAS
+            IF DO_SacaUnas THEN
+               T_Unas_Saca=T_Unas_Saca + 1
+               IF T_Unas_Saca > 2 THEN
+                  DI_UnasSacadas_SIM=TRUE
+                  DI_UnasEscondidas_SIM=FALSE
+               ENDIF
+            ELSE
+               T_Unas_Saca=0
+            ENDIF
+            IF DO_EscondeUnas THEN
+               T_Unas_Esconde=T_Unas_Esconde + 1
+               IF T_Unas_Esconde > 2 THEN
+                  DI_UnasEscondidas_SIM=TRUE
+                  DI_UnasSacadas_SIM=FALSE
+               ENDIF
+            ELSE
+               T_Unas_Esconde=0
+            ENDIF
+         ;ENDFOLD
+         
+         ;FOLD FLOTACIÓN
+            IF DO_RigidizaFlot THEN
+               T_Flot_Rigido=T_Flot_Rigido + 1
+               IF T_Flot_Rigido > 1 THEN
+                  DI_FlotRigida_SIM=TRUE
+                  DI_FlotLibre_SIM=FALSE
+               ENDIF
+            ELSE
+               T_Flot_Rigido=0
+            ENDIF
+            IF DO_LiberaFlot THEN
+               T_Flot_Libre=T_Flot_Libre + 1
+               IF T_Flot_Libre > 1 THEN
+                  DI_FlotLibre_SIM=TRUE
+                  DI_FlotRigida_SIM=FALSE
+               ENDIF
+            ELSE
+               T_Flot_Libre=0
+            ENDIF
+         ;ENDFOLD
+         ;FOLD CENTRAJES
+            ; --- 5. CENTRAJE LARGO (MESA) ---
+            ; Adelante
+            IF DO_AdelanteCentrajeL THEN
+               T_CentL_Fwd = T_CentL_Fwd + 1
+               IF T_CentL_Fwd > 2 THEN
+                  DI_CentrajeLargoFWD_SIM=TRUE
+                  DI_CentrajeLargoREV_SIM=FALSE
+               ENDIF
+            ELSE
+               T_CentL_Fwd = 0
+            ENDIF
+            
+            ; Atrás
+            IF DO_AtrasCentrajeL THEN
+               T_CentL_Rev = T_CentL_Rev + 1
+               IF T_CentL_Rev > 2 THEN
+                  DI_CentrajeLargoREV_SIM=TRUE
+                  DI_CentrajeLargoFWD_SIM=FALSE
+               ENDIF
+            ELSE
+               T_CentL_Rev = 0
+            ENDIF
+
+            ; --- 6. CENTRAJE LATERAL DERECHO ---
+            ; Sube Derecho
+            IF DO_SubeCentrajeLateral THEN
+               T_CentDer_Sube = T_CentDer_Sube + 1
+               IF T_CentDer_Sube > 2 THEN
+                  DI_CentrajeDerArriba_SIM=TRUE
+               ENDIF
+            ELSE
+               T_CentDer_Sube = 0
+            ENDIF
+            
+            ; Baja Derecho
+            IF DO_BajaCentrajeLateral THEN
+               T_CentDer_Baja = T_CentDer_Baja + 1
+               IF T_CentDer_Baja > 2 THEN
+                  DI_CentrajeDerArriba_SIM=FALSE
+               ENDIF
+            ELSE
+               T_CentDer_Baja = 0
+            ENDIF
+
+            ; Atrás Derecho (REV)
+            IF DO_REVCentrajeLat THEN
+               T_CentDer_Rev = T_CentDer_Rev + 1
+               IF T_CentDer_Rev > 2 THEN
+                  DI_CentrajeDerAtras_SIM=TRUE
+               ENDIF
+            ELSE
+               T_CentDer_Rev = 0
+            ENDIF
+            
+            ; Adelante Derecho (FWD)
+            IF DO_FWDCentrajeLat THEN
+               T_CentDer_Fwd = T_CentDer_Fwd + 1
+               IF T_CentDer_Fwd > 2 THEN
+                  DI_CentrajeDerAtras_SIM=FALSE
+               ENDIF
+            ELSE
+               T_CentDer_Fwd = 0
+            ENDIF
+
+            ; --- 7. CENTRAJE LATERAL IZQUIERDO ---
+            ; Sube Izquierdo
+            IF DO_SubeCentrajeLat_IZQ THEN
+               T_CentIzq_Sube = T_CentIzq_Sube + 1
+               IF T_CentIzq_Sube > 2 THEN
+                  DI_CentrajeIzqArriba_SIM=TRUE
+               ENDIF
+            ELSE
+               T_CentIzq_Sube = 0
+            ENDIF
+            
+            ; Baja Izquierdo
+            IF DO_BajaCentrajeLat_IZQ THEN
+               T_CentIzq_Baja = T_CentIzq_Baja + 1
+               IF T_CentIzq_Baja > 2 THEN
+                  DI_CentrajeIzqArriba_SIM=FALSE
+               ENDIF
+            ELSE
+               T_CentIzq_Baja = 0
+            ENDIF
+
+            ; Atrás Izquierdo (REV)
+            IF DO_REVCentrajeLat_IZQ THEN
+               T_CentIzq_Rev = T_CentIzq_Rev + 1
+               IF T_CentIzq_Rev > 2 THEN
+                  DI_CentrajeIzqAtras_SIM=TRUE
+               ENDIF
+            ELSE
+               T_CentIzq_Rev = 0
+            ENDIF
+            
+            ; Adelante Izquierdo (FWD)
+            IF DO_FWDCentrajeLat_IZQ THEN
+               T_CentIzq_Fwd = T_CentIzq_Fwd + 1
+               IF T_CentIzq_Fwd > 2 THEN
+                  DI_CentrajeIzqAtras_SIM=FALSE
+               ENDIF
+            ELSE
+               T_CentIzq_Fwd = 0
+            ENDIF
+         ;ENDFOLD
+         ;FOLD FORMATO
+            IF NOT (Formato_caja == 0) THEN
+               DO_Formato=TRUE
+            ELSE
+               DO_Formato=FALSE
+            ENDIF
+         ;ENDFOLD
+         ;FOLD PROGRAMA
+            IF NOT (Programa_elegido == 0) THEN
+               DO_Programa_elegido=TRUE
+            ELSE
+               DO_Programa_elegido=FALSE
+            ENDIF
+         ;ENDFOLD
+         ;FOLD STROBE HMI
+            IF DO_ACK_HMI THEN
+               DI_Strobe_HMI_SIM=FALSE
+            ELSE
+               DI_Strobe_HMI_SIM=TRUE
+            ENDIF
+         ;ENDFOLD
+         
+      ;ENDFOLD
+
+
+	;FOLD SUBMIT_CYCLE
+	; Please adjust Parameters of SUBMIT_CYCLE () call 
+	; First Parameter SPS_TIME: >= 1 determines duration of one run of loop/endloop in ms
+	; Second Parameter SPS_PRIO: possible values: #PRIO_NORMAL, #PRIO_HIGH, #PRIO_HIGHEST
+	SUBMIT_CYCLE (12, #PRIO_NORMAL)
+	;ENDFOLD (SUBMIT_CYCLE)
+  ENDLOOP
+END
+  
+;FOLD USER SUBROUTINE
+;Integrate your user defined subroutines
+
+;ENDFOLD (USER SUBROUTINE)
+
+;FOLD ;%{H}
+DEF RESET_OUT ( )
+  INT N
+  MsgLoop(" ")
+  IF REFLECT_PROG_NR == 1 THEN
+    FOR N = 0 TO PGNO_LENGTH - 1
+      $OUT[PGNO_FBIT_REFL + N] = FALSE
+    ENDFOR
+  ENDIF
+  IF (PGNO_REQ>0) THEN
+    $OUT[PGNO_REQ]=FALSE
+  ELSE
+    IF (PGNO_REQ<0) THEN
+      $OUT[-PGNO_REQ]=TRUE
+    ENDIF
+  ENDIF
+END
+
+DEF RESET_LINESEL()
+  $LINE_SEL_OK=FALSE
+END
+;ENDFOLD

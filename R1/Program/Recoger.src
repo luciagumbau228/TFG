@@ -1,0 +1,61 @@
+DEF  Recoger ( )
+   $BASE = BASE_DATA[3]
+   $LOAD = LOAD_DATA[1] ;PINZA VACIA
+   WAIT FOR DI_PermMesaL1_SIM ; que el PLC nos indique que la rodillera esta parada, y sin el aproxiamdor
+  
+   SPTP SobreMesa WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0, $APO.CDIS = 200 C_DIS
+
+   ;FOLD ABRIR PINZA POR COMPLETO
+   CONTINUE
+   WAIT FOR DI_FlotLibre_SIM AND DI_PalaAbierta_SIM AND DI_UnasEscondidas_SIM 
+
+   ; Una vez confirmada la apertura total, desactivamos todas las señales neumáticas
+   ; Esto las deja listas para recibir las órdenes inversas de cierre sin conflicto alguno
+   DO_AbrePala = FALSE
+   DO_AtrasCentrajeL = FALSE
+   DO_EscondeUnas = FALSE
+   DO_SubeCentrajeLateral = FALSE
+   DO_REVCentrajeLat = FALSE
+   DO_SubeCentrajeLat_IZQ = FALSE
+   DO_REVCentrajeLat_IZQ = FALSE
+   DO_LiberaFlot = FALSE
+   ;ENDFOLD ABRIR PINZA 
+
+   DO_RMesaL1 = TRUE ;indicamos al PLC que estamos en Mesa
+   DO_RecogiendoCaja = TRUE
+
+   SLIN EntradaMesa WITH $VEL.CP = 3.0
+   SLIN CogeMesa WITH $VEL.CP = 3.0
+   
+   DO_CierraPala = TRUE
+   WAIT FOR DI_PalaCerrada_SIM
+   continue
+   DO_SacaUnas = TRUE
+   SLIN EntradaMesa WITH $VEL.CP = 2.5
+   
+   ;Si no es la priemra caja de la fila cerramos centraje lateral para
+   ;que no choque con la caja ya colocada en palet 
+   IF (PosDejar.X <= -300) THEN
+      IF (PosDejar.Y > 200)THEN
+         DO_FWDCentrajeLat = TRUE 
+      ELSE
+         DO_FWDCentrajeLat_IZQ = TRUE  
+      ENDIF 
+   ENDIF
+      
+   IF (FormatoActual.Largo == 300) AND NOT DI_ModoVaciadoLinea_SIM THEN
+      $LOAD = LOAD_DATA[3] ;PINZA CARGADA DOBLE
+   ELSE
+      $LOAD = LOAD_DATA[2] ;PINZA CARGADA SIMPLE
+   ENDIF
+   
+   DO_CapaRecL1 = TRUE
+   WAIT FOR DI_UnasSacadas_SIM
+   DO_SacaUnas = FALSE
+   TRIGGER WHEN PATH = -100.0 DELAY = 0 DO DO_RMesaL1=FALSE 
+   SPTP SobreMesa WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0, $APO.CDIS = 500 C_DIS
+
+   DO_CapaRecL1 = FALSE
+   DO_RigidizaFlot = TRUE
+
+END

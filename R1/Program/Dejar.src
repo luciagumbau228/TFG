@@ -1,0 +1,73 @@
+DEF  Dejar( )
+
+ 
+   WAIT FOR DI_PermPalEntraP1_SIM OR DI_PermAproxPal_SIM
+   $BASE = BASE_DATA[2]
+   SPTP PtoFueraPalet  WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0, $APO.CDIS = 500 C_DIS
+   SPTP SobreDejarHTte WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0, $APO.CDIS = 500 C_DIS
+
+   DO_RigidizaFlot = FALSE
+   TRIGGER WHEN PATH = -100 DELAY = 0 DO DO_LiberaFlot = TRUE
+   
+   SPTP AproxDejar WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0, $APO.CDIS = 200 C_DIS
+
+   DO_RPalL1 = TRUE 
+
+   SLIN PreDejarDiagonal WITH $VEL.CP = 3.0, $APO.CDIS = 50 C_DIS
+
+   ; Esconder uñas en movimiento
+   DO_SacaUnas = FALSE
+   
+   DO_EscondeUnas = TRUE
+   SLIN AntesDejar WITH $VEL.CP = 3.0, $APO.CDIS = 5 C_DIS
+
+   
+   WAIT FOR DI_UnasEscondidas_SIM
+   DO_EscondeUnas  = FALSE
+    
+   TRIGGER WHEN PATH = 50 DELAY = 0 DO DO_RigidizaFlot = TRUE 
+   SLIN PosDejar WITH $VEL.CP = 2.0
+
+   DO_AdelanteCentrajeL = TRUE
+   IF (PosDejar.X <= -300) THEN
+      DO_BajaCentrajeLat_IZQ = TRUE
+      DO_REVCentrajeLat_IZQ  = TRUE 
+      
+      WAIT FOR NOT DI_CentrajeIzqArriba_SIM AND DI_CentrajeIzqAtras_SIM
+      DO_BajaCentrajeLat_IZQ = FALSE
+      DO_REVCentrajeLat_IZQ  = FALSE
+   ENDIF
+   IF (PosDejar.X < -900) THEN
+      DO_BajaCentrajeLateral = TRUE
+      DO_REVCentrajeLat      = TRUE 
+      CONTINUE
+      WAIT FOR NOT DI_CentrajeDerArriba_SIM AND DI_CentrajeDerAtras_SIM
+      DO_BajaCentrajeLateral = FALSE
+      DO_REVCentrajeLat      = FALSE
+      
+   ENDIF
+
+   $LOAD = LOAD_DATA[1] 
+   DO_CapaDepoPalL1 = TRUE 
+   DO_AbrePala = TRUE
+   DO_AdelanteCentrajeL = FALSE
+   DO_AtrasCentrajeL = TRUE
+   TRIGGER WHEN PATH = 50 DELAY = 0 DO AbrirPinza() PRIO = 1
+   SLIN LiberaCajasPal WITH $VEL.CP = 3.0, $APO.CDIS = 100 C_DIS
+ 
+   DO_LiberaFlot = TRUE 
+   DO_CapaDepoPalL1 = FALSE
+
+   SPTP SobrePaletHTte WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0, $APO.CDIS = 500 C_DIS
+   TRIGGER WHEN PATH = -100.0 DELAY = 0 DO DO_RPalL1 = FALSE
+   SPTP PtoFueraPalet WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0, $APO.CDIS = 500 C_DIS
+
+   
+   WAIT FOR DI_Strobe_SIM
+    IF (FormatoActual.Largo == 300) AND NOT DI_ModoVaciadoLinea_SIM THEN
+      N_Cajas_OK = N_Cajas_OK + 2
+   ELSE
+      N_Cajas_OK = N_Cajas_OK + 1
+   ENDIF
+   
+END

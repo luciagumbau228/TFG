@@ -1,0 +1,245 @@
+DEF  RSR0001( )
+   ;FOLD INI;%{PE}
+      ;FOLD BASISTECH INI
+         GLOBAL INTERRUPT DECL 3 WHEN $STOPMESS==TRUE DO IR_STOPM ( )
+         INTERRUPT ON 3 
+         BAS (#INITMOV,0 )
+      ;ENDFOLD (BASISTECH INI)
+      ;FOLD USER INI
+         ;Make your modifications here
+         
+      ;ENDFOLD (USER INI)
+   ;ENDFOLD (INI)
+   
+    ; --- INICIALIZACIÓN ---
+   $BASE = BASE_DATA[1]
+   $TOOL = TOOL_DATA[1]
+
+   $TIMER[1] = 0   ; Timer ciclo total
+   $TIMER[2] = 0   ; Timer recogida
+   $TIMER[3] = 0   ; Timer dejada
+   $TIMER_STOP[1] = TRUE
+   $TIMER_STOP[2] = TRUE
+   $TIMER_STOP[3] = TRUE
+
+   ; Detener el robot si el TCP sale del workspace definido
+   $WORKSPACE[1].MODE = #TCP_OUTSIDE_STOP
+
+   ; --- INTERRUPCIONES ---
+   ; Las interrupciones solo setean flags y hacen BRAKE+RESUME
+   ; El movimiento se ejecuta en los CASE de la FSM.
+   INTERRUPT DECL 10 WHEN DI_ProgReinicio==TRUE      DO OnInterruptR()
+   INTERRUPT ON 10
+   INTERRUPT DECL 11 WHEN DI_ProgMantenimiento==TRUE DO OnInterruptM()
+   INTERRUPT ON 11
+
+   ; --- RESET DE FLAGS GLOBALES ---
+   B_Reinicio_Activo      = FALSE
+   B_Mantenimiento_Activo = FALSE
+   FinCiclo               = FALSE
+   DO_PtoInicioCicloMal   = FALSE
+
+
+   ; Arrancar en estado HOME
+   EstadoActual = EST_HOME
+
+   LOOP
+
+      DO_RFueraDCS = $WORKSPACE[1].STATE
+      
+      ;GESTIÓN DE FLAGS DE INTERRUPCIÓN
+      ;Se evalúan ANTES del SWITCH para que la transición ocurra en el
+      ;mismo ciclo en que se detecta el flag.
+
+      IF B_Reinicio_Activo THEN
+         INTERRUPT OFF 10
+         B_Reinicio_Activo = FALSE
+         EstadoActual      = EST_REINICIO
+      ENDIF
+
+      IF B_Mantenimiento_Activo THEN
+         INTERRUPT OFF 11
+         B_Mantenimiento_Activo = FALSE
+         EstadoActual = EST_MANTENIMIENTO
+      ENDIF
+      ;GESTIÓN MODO VACIADO DE LÍNEA
+      IF DI_ModoVaciadoLinea_SIM THEN
+         B_VaciadoLinea_Activo = TRUE
+         DO_ModoVaciado = TRUE
+      ELSE
+         DO_ModoVaciado = FALSE
+      ENDIF
+      
+      ;GESTIÓN CAMBIO MANUAL PALET
+      IF DI_CambiaPalet_SIM THEN
+         B_CambiaPalet_Activo = TRUE
+      ENDIF
+      
+      ;GESTIÓN CAMBIO FORMATO
+      IF DI_CambioFormato THEN
+            B_CambioFormato_Activo = TRUE
+      ENDIF
+      
+      ;CÁLCULO DE POSICIÓN EN HOME
+      ;Se recalcula en cada iteración para que la validación sea siempre
+      ;fresca. EnHome = TRUE si el robot está cerca de cualquiera de las
+      ;3 posiciones de inicio válidas (tolerancia ±5mm en X e Y).
+      
+      EnHome  = FALSE
+      Pos_act = $POS_ACT
+
+      IF ((ABS(Pos_act.X - Casa.X)      < 5.0) AND (ABS(Pos_act.Y - Casa.Y)      < 5.0)) THEN
+         EnHome = TRUE
+      ENDIF
+      IF ((ABS(Pos_act.X - HomeMesa0.X)  < 5.0) AND (ABS(Pos_act.Y - HomeMesa0.Y)  < 5.0)) THEN
+         EnHome = TRUE
+      ENDIF
+      IF ((ABS(Pos_act.X - HomeMesa180.X) < 5.0) AND (ABS(Pos_act.Y - HomeMesa180.Y) < 5.0)) THEN
+         EnHome = TRUE
+      ENDIF
+
+      ;MÁQUINA DE ESTADOS FINITA
+      SWITCH EstadoActual
+
+         CASE EST_HOME
+            
+         ; Espera a que el robot esté en una posición de inicio válida.
+         ; Si no lo está, informa al PLC y vuelve al inicio del LOOP.
+         ; Si lo está, espera el Strobe del PLC, carga el HMI y transiciona a producción.
+
+            IF NOT EnHome THEN
+               ; Robot fuera de posición — avisar al PLC y esperar
+               DO_PtoInicioCicloMal = TRUE
+               ; No hacemos nada más: el LOOP volverá a evaluar
+               ; cuando el operario mueva el robot manualmente a Home.
+            ELSE
+               DO_PtoInicioCicloMal = FALSE
+
+               MsgNotify("Robot en Home. Esperando Strobe del PLC", "SISTEMA")
+               WAIT FOR DI_Strobe_SIM
+
+               ; Esperar que HMI tenga formato y programa seleccionados
+               WAIT FOR (DO_Formato AND DO_Programa_elegido)
+
+               ; Cargar tabla de mosaico desde HMI
+               Carga_Datos_HMI()
+               MsgNotify("Datos HMI cargados correctamente", "SISTEMA")
+
+               ; Resetear estadísticas para el nuevo ciclo de palet
+               Mejor_recogida = 9999.0
+               Mejor_dejada   = 9999.0
+               Mejor_ciclo    = 9999.0
+               Peor_recogida  = 0.0
+               Peor_dejada    = 0.0
+               Peor_ciclo     = 0.0
+
+               ; Arrancar timer de ciclo total
+               $TIMER[1]      = 0
+               $TIMER_STOP[1] = FALSE
+
+               EstadoActual = EST_EJECUTA_PROGRAMA
+            ENDIF
+            
+         CASE EST_EJECUTA_PROGRAMA
+         
+             IF B_CambioFormato_Activo THEN
+                B_CambioFormato_Activo = FALSE
+                 ; Solo podemos cambiar formato si:
+                 ; Acabamos de empezar una capa nueva 
+                 ; O esperamos a que entre un palet nuevo 
+                 
+                 IF B_CapaCompletada THEN
+                     MsgNotify("Cambio de formato: capa completada. Recargando...", "SISTEMA")
+                     $TIMER_STOP[1] = TRUE
+                     EstadoActual = EST_IR_HOME
+                 ELSE
+                     MsgNotify("Cambio de formato. Palet nuevo...", "SISTEMA")
+                     WAIT FOR DI_PaletNuevoOK
+                     MsgNotify("Palet nuevo. Volviendo a Home...", "SISTEMA")
+                     $TIMER_STOP[1] = TRUE
+                     ; Resetear contadores porque empezamos palet nuevo
+                     ResetPalet()
+                     EstadoActual = EST_IR_HOME
+                 ENDIF
+             ENDIF 
+             IF B_CambiaPalet_Activo THEN
+                 B_CambiaPalet_Activo = FALSE
+                 MsgNotify("Cambio manual de palet solicitado","SISTEMA")
+         
+                 WAIT FOR DI_PaletNuevoOK
+         
+                 ResetPalet()
+                 EstadoActual = EST_IR_HOME
+             ENDIF
+             
+              IF B_VaciadoLinea_Activo AND NOT DI_PermMesaL1_SIM  THEN
+
+                  MsgNotify("Vaciado de linea completado","SISTEMA")
+         
+                  B_VaciadoLinea_Activo = FALSE
+         
+                  $TIMER_STOP[1] = TRUE
+         
+                  EstadoActual = EST_IR_HOME
+      
+               ENDIF
+              IF EstadoActual == EST_EJECUTA_PROGRAMA THEN
+               
+                  IF Programa_elegido == 1 THEN
+                     Paletiza()
+                  ELSE
+                     Rechazo()
+                  ENDIF
+               
+               ENDIF
+                     
+             
+             
+
+         CASE EST_REINICIO
+         ; La interrupción ha hecho BRAKE y ha seteado el flag.
+         ; Aquí ejecutamos la secuencia de recuperación de forma controlada:
+         ; si la pinza lleva una caja, la descarga en la zona de evacuación
+         ; y después el robot vuelve a Casa.
+         ; Al terminar se reactiva la interrupción y se vuelve a EST_HOME
+         ; para que el operario rearme el sistema.
+
+            MsgNotify("Ejecutando Reinicio", "SISTEMA")
+            $TIMER_STOP[1] = TRUE   ; Detener timer ciclo durante reinicio
+
+            Reinicio()
+            
+
+            INTERRUPT ON 10         ; Reactivar interrupción de reinicio
+
+            EstadoActual   = EST_HOME
+
+         CASE EST_MANTENIMIENTO
+
+         ; Mueve el robot a la posición de mantenimiento y hace HALT.
+         ; Cuando el operario rearma y pulsa START, la ejecución continúa
+         ; tras el HALT en Mantenimiento(), que vuelve a Casa.
+         ; Se obliga a pasar por EST_HOME antes de reanudar producción.
+
+            MsgNotify("Robot en zona de Mantenimiento. Esperando rearme...", "SISTEMA")
+            $TIMER_STOP[1] = TRUE   ; Detener timer ciclo durante mantenimiento
+
+            Mantenimiento()
+            Ir_a_Home()
+            
+
+            INTERRUPT ON 11         ; Reactivar interrupción de mantenimiento
+
+            EstadoActual   = EST_HOME
+
+         CASE EST_IR_HOME
+            Ir_a_Home()
+            EstadoActual = EST_HOME
+         DEFAULT
+            MsgNotify("Estado FSM desconocido. Recuperando a Home...", "SISTEMA")
+            EstadoActual = EST_HOME
+
+      ENDSWITCH
+
+   ENDLOOP
+END

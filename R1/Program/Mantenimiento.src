@@ -1,0 +1,38 @@
+DEF  Mantenimiento ( )
+  
+    DO_FinMant=FALSE
+    $BASE = BASE_DATA[1]
+    Pos_act = $POS_ACT
+    SPTP Pos_act WITH $VEL_AXIS[1]=10, $VEL_AXIS[2]=10, $VEL_AXIS[3]=10, $VEL_AXIS[4]=10, $VEL_AXIS[5]=10, $VEL_AXIS[6]=10
+    Sobre_depo = Dep_Caja_ini
+    Sobre_depo.Z = H_inicia
+    
+    ;Preparación pinza
+    DO_LiberaFlot = TRUE
+    WAIT FOR DI_FlotLibre_SIM 
+    DO_LiberaFlot = FALSE
+   
+   ;Si tiene los peines cerrados (lleva una caja)
+   IF NOT DI_PalaAbierta_SIM THEN
+      SPTP Sobre_depo WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0   
+      SLIN Dep_Caja_ini WITH $VEL.CP=2
+
+      DO_AbrePala = TRUE
+      WAIT FOR DI_PalaAbierta_SIM
+      DO_AbrePala = FALSE
+       
+      SLIN Sobre_depo WITH $VEL.CP=2
+      Num_cajas_actual= Num_cajas_actual -1
+   ENDIF
+   $TOOL = TOOL_DATA[1]
+   SPTP Casa WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0    
+
+   AltoPosMantenim = $POS_ACT
+   AltoPosMantenim.Z = H_inicia
+   
+   SPTP Casa WITH $VEL_AXIS[1]=100.0, $VEL_AXIS[2]=100.0, $VEL_AXIS[3]=100.0, $VEL_AXIS[4]=100.0, $VEL_AXIS[5]=100.0, $VEL_AXIS[6]=100.0
+   SLIN PosMantenim2 WITH $VEL.CP=1
+   SLIN PosMantenim WITH $VEL.CP=1
+   DO_FinMant=TRUE
+   HALT
+END

@@ -1,0 +1,44 @@
+DEF Test_Carga_Mosaicos ( )
+   ;Definimos los datos generales del paletizado
+   IF (Formato_caja == 1) then 
+      
+      Set_datos_formato(600, 400,300, 4, 4)
+      
+      Set_Caja(1, 1, 1, -90)
+      Set_Caja(2, 2, 1, -90)
+      Set_Caja(3, 1, 2, 90)
+      Set_Caja(4, 2, 2, 90)
+   
+      MsgNotify("Simulador HMI listo. Iniciando transferencia caja GRANDE...", "TEST")
+   ELSE
+      Set_datos_formato(300, 400, 300, 4, 4)
+   
+      Set_caja(1, 1, 1, -90)
+      Set_caja(2, 2, 1, -90)
+      Set_caja(3, 1, 2, 90)
+      Set_caja(4, 2, 2, 90)
+
+     
+      MsgNotify("Simulador HMI listo. Iniciando transferencia caja PEQUEÑA...", "TEST")
+   ENDIF
+   
+   
+
+   MsgNotify("Carga de datos completada con éxito", "TEST")
+END
+DEF  Set_datos_formato (L:IN, An:IN,Al:IN, Cj:IN, Cp:IN )
+   DECL INT L, An, Al, Cj, Cp
+   FormatoActual.Largo = L
+   FormatoActual.Ancho = An
+   FormatoActual.Alto  = Al
+   FormatoActual.CajasCapa = Cj
+   FormatoActual.CapasTotales = Cp
+END
+DEF  Set_caja (Idx:IN, F:IN, C:IN, A:IN )
+   INT Idx, F, C, A
+   Fila[Idx]  = F
+   Colum[Idx] = C
+   Ang[Idx]   = A
+END
+
+

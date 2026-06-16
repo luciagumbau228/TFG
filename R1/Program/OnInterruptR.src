@@ -1,0 +1,6 @@
+DEF  OnInterruptR ( )
+   INTERRUPT OFF 10  ; Previene dobles disparos por rebote del sensor
+   B_Reinicio_Activo = TRUE
+   IR_STOPM()          ; Frena los servomotores con máxima deceleración
+   RESUME
+END
